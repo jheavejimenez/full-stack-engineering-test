@@ -5,11 +5,18 @@ import { validate } from './config/env.validation';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { User } from './users/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
+import { ProductsModule } from './products/products.module';
+import { OrdersModule } from './orders/orders.module';
+import { Product } from './products/entities/product.entity';
+import { Order } from './orders/entities/order.entity';
+import { OrderItem } from './orders/entities/order-item.entity';
 
 @Module({
   imports: [
     AuthModule,
     UsersModule,
+    ProductsModule,
+    OrdersModule,
     ConfigModule.forRoot({ isGlobal: true, validate }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -21,7 +28,7 @@ import { AuthModule } from './auth/auth.module';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [User],
+        entities: [User, Product, Order, OrderItem],
         synchronize: false,
         logging: configService.get<boolean>('DB_LOGGING'),
       }),
