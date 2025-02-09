@@ -12,6 +12,7 @@ import { Order } from './orders/entities/order.entity';
 import { OrderItem } from './orders/entities/order-item.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guards';
+import { Payment } from './payments/entities/payment.entity';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guards';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [User, Product, Order, OrderItem],
+        entities: [User, Product, Order, OrderItem, Payment],
         synchronize: false,
         logging: configService.get<boolean>('DB_LOGGING'),
       }),
@@ -38,7 +39,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guards';
   ],
   controllers: [],
   providers: [
-     {
+    {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },

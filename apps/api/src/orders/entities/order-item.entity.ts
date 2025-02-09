@@ -16,7 +16,7 @@ export class OrderItem {
   @Column('int')
   quantity: number;
 
-  @Column('decimal')
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
 
   @CreateDateColumn({ type: 'timestamp' })

@@ -11,7 +11,11 @@ export class Payment extends BaseEntity {
   @JoinColumn()
   order: Order;
 
-  @Column({ type: 'enum', enum: PaymentStatus })
+  @Column({
+    type: 'enum',
+    enum: PaymentStatus,
+    default: PaymentStatus.PENDING,
+  })
   payment_status: PaymentStatus;
 
   @Column({ nullable: true })
