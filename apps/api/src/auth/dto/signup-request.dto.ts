@@ -1,6 +1,6 @@
 import { IsEmail, IsEnum, IsString, MinLength } from 'class-validator';
 
-export class SignupDto {
+export class SignupRequestDto {
   @IsString()
   name: string;
 

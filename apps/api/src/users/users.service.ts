@@ -8,8 +8,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {
-  }
+  ) {}
 
   async isEmailTaken(email: string): Promise<boolean> {
     const user = await this.userRepository.findOne({ where: { email } });
@@ -32,9 +31,18 @@ export class UsersService {
     return user;
   }
 
-  async createUser({ name, email, password, role }: { name: string, email: string; password: string; role: string }) {
+  async createUser({
+    name,
+    email,
+    password,
+    role,
+  }: {
+    name: string;
+    email: string;
+    password: string;
+    role: string;
+  }) {
     const user = this.userRepository.create({ name, email, password, role });
     return this.userRepository.save(user);
   }
-
 }

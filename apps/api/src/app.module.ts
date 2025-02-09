@@ -5,13 +5,12 @@ import { validate } from './config/env.validation';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { User } from './users/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
-import { SharedModule } from './shared/shared.module';
-
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, validate }),
+    AuthModule,
     UsersModule,
+    ConfigModule.forRoot({ isGlobal: true, validate }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -27,8 +26,6 @@ import { SharedModule } from './shared/shared.module';
         logging: configService.get<boolean>('DB_LOGGING'),
       }),
     }),
-    AuthModule,
-    SharedModule,
   ],
   controllers: [],
   providers: [],

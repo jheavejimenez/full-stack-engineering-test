@@ -16,6 +16,15 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "migration:generate": {
+      "dependsOn": ["^migration:generate"]
+    },
+    "migration:run": {
+      "dependsOn": ["^migration:run"]
+    },
+    "migration:revert": {
+      "dependsOn": ["^migration:revert"]
     }
   }
 }

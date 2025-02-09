@@ -1,7 +1,6 @@
-// apps/api/src/users/entities/user.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 import { IsEmail, IsEnum, IsString, MinLength } from 'class-validator';
-import { BaseEntity } from '../../common/entities/base.entity';
+import { BaseEntity } from '../../database/entities/base.entity';
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -24,7 +23,7 @@ export class User extends BaseEntity {
   @Column({
     type: 'enum',
     enum: ['merchant', 'customer'],
-    default: 'customer'
+    default: 'customer',
   })
   @IsEnum(['merchant', 'customer'])
   role: string;

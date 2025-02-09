@@ -1,42 +1,54 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
-import { SignupDto } from './dto/signup.dto';
-import { LoginDto } from './dto/login.dto';
+import { SignupRequestDto } from './dto/signup-request.dto';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private jwtService: JwtService, private usersService: UsersService) {
+    private jwtService: JwtService,
+    private usersService: UsersService,
+  ) {
   }
 
-  async login({ email, password }: LoginDto) {
-    const user = await this.usersService.findByEmail(email);
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException('Invalid credentials');
+  async validateUser(email: string, password: string): Promise<User> {
+    const user: User = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new BadRequestException('User not found');
     }
+    const isMatch: boolean = bcrypt.compareSync(password, user.password);
+    if (!isMatch) {
+      throw new BadRequestException('Password does not match');
+    }
+    return user;
+  }
 
-    const payload = { userId: user.id, role: user.role };
+  async login(user: User) {
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role
+    };
     return {
       access_token: this.jwtService.sign(payload),
-      userId: user.id,
-      email: user.email,
-      role: user.role,
     };
   }
 
-  async signup({email, password, name, role}: SignupDto) {
+  async signup({ email, password, name, role }: SignupRequestDto) {
     const existingUser = await this.usersService.isEmailTaken(email);
     if (existingUser) {
-      throw new ConflictException('Email already registered');
+      throw new BadRequestException('Email already registered');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await this.usersService.createUser({ name, email, password: hashedPassword, role });
-    const { password: _, ...result } = user;
-    return result;
-
+    const user: User = await this.usersService.createUser({
+      email,
+      password: hashedPassword,
+      name,
+      role,
+    });
+    return this.login(user);
   }
-
 }
