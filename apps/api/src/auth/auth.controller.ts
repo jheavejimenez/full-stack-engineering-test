@@ -1,20 +1,10 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { BadRequestException, Body, Controller, HttpCode, HttpStatus, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { SignupRequestDto } from './dto/signup-request.dto';
 import { SignupResponseDto } from './dto/signup-response.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { JwtAuthGuard } from './guards/jwt-auth.guards';
+import { Public } from './decorator/public.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -22,6 +12,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @Public()
   @UseGuards(LocalAuthGuard)
   @HttpCode(HttpStatus.OK)
   async login(@Request() req): Promise<LoginResponseDto | BadRequestException> {
@@ -29,14 +20,11 @@ export class AuthController {
   }
 
   @Post('signup')
+  @Public()
   @HttpCode(HttpStatus.CREATED)
   async signup(@Body() signupDto: SignupRequestDto): Promise<SignupResponseDto | BadRequestException> {
     return this.authService.signup(signupDto);
   }
 
-  @Get('profile')
-  @UseGuards(JwtAuthGuard)
-  async profile(@Request() req) {
-    return req.user;
-  }
+
 }

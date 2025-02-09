@@ -10,3 +10,6 @@ export const jwtSecrets = {
   secret: configService.get<string>('JWT_SECRET') || 'secret',
   expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '1d',
 };
+
+// need to check this config in the nestjs documentation
+export const IS_PUBLIC_KEY = configService.get<string>('PUBLIC_KEY') || 'isPublic';
