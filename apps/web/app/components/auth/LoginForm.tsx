@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { toast } from "sonner"
 
 
 export default function LoginForm() {
@@ -19,10 +20,11 @@ export default function LoginForm() {
     e.preventDefault();
     try {
       await login(email, password);
+      toast.success("Logged in successfully!")
       router.push('/');
     } catch (error) {
       console.error('Login failed:', error);
-      // Handle login error (e.g., show error message)
+      toast.error("Login failed. Please check your credentials and try again.")
     }
   };
 

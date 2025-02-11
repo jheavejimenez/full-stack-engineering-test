@@ -8,12 +8,11 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
     ...options.headers,
   };
 
-  const response = await fetch(`${API_BASE_URL}${url}`);
+  const response = await fetch(`${API_BASE_URL}${url}`, { ...options, headers })
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message);
+    throw new Error('API request failed')
   }
 
-  return response.json();
+  return response.json()
 }

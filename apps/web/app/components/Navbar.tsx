@@ -21,7 +21,7 @@ export default function Navbar() {
           )}
           {user ? (
             <>
-              <span className='text-foreground'>Welcome, {user.name}</span>
+              <span className='text-foreground pr-5'>Welcome, {user.name}</span>
               <Button variant='destructive' onClick={logout}>
                 Logout
               </Button>

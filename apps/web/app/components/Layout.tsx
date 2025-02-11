@@ -7,7 +7,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <Navbar />
       <main className="flex-grow">{children}</main>
       <footer className="bg-gray-100 py-4 text-center">
-        <p>&copy; 2023 Our E-commerce Platform. All rights reserved.</p>
+        <p>&copy; 2025 Our E-commerce Platform. Modulus lab.</p>
       </footer>
     </div>
   )
