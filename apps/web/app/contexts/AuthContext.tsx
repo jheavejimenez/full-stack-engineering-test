@@ -2,8 +2,8 @@
 
 import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
-import type { DecodedToken, User } from '../lib/types';
-import { login as apiLogin, signup as apiSignup } from '../lib/api';
+import type { DecodedToken, User } from '@/app/services/types';
+import { login as apiLogin, signup as apiSignup } from '@/app/services/api';
 import { jwtDecode } from 'jwt-decode';
 
 interface AuthContextType {
@@ -43,8 +43,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('user', JSON.stringify(user));
   };
 
-  const signup = async (name: string, email: string, password: string) => {
-    const response = await apiSignup({ name, email, password });
+  const signup = async (name: string, role: string, email: string, password: string) => {
+    const response = await apiSignup({ name, role, email, password });
     const decodedToken = jwtDecode<DecodedToken>(response.access_token);
     const user: User = {
       id: decodedToken.sub,
