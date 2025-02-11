@@ -40,7 +40,7 @@ export default function SignupForm() {
     e.preventDefault()
     try {
       const validatedData = signupSchema.parse(formData)
-      await signup(validatedData.name, validatedData.email, validatedData.password, validatedData.role)
+      await signup(validatedData.name, validatedData.role, validatedData.email, validatedData.password)
       toast.success("Account created successfully! Please log in.")
       router.push("/login")
     } catch (error) {

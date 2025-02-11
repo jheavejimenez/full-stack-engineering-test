@@ -41,6 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(user);
     setRole(decodedToken.role);
     localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem('access_token', response.access_token);
   };
 
   const signup = async (name: string, role: string, email: string, password: string) => {

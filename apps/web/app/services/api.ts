@@ -11,7 +11,8 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const response = await fetch(`${API_BASE_URL}${url}`, { ...options, headers })
 
   if (!response.ok) {
-    throw new Error('API request failed')
+    const error = await response.json();
+    throw new Error(error.message);
   }
 
   return response.json()

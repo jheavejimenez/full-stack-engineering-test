@@ -24,7 +24,7 @@ export default function LoginForm() {
   })
   const [errors, setErrors] = useState<Partial<LoginFormData>>({})
   const router = useRouter()
-  const { login } = useAuth()
+  const { login, role } = useAuth()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -35,7 +35,7 @@ export default function LoginForm() {
     e.preventDefault()
     try {
       const validatedData = loginSchema.parse(formData)
-      const { role } = await login(validatedData.email, validatedData.password)
+      await login(validatedData.email, validatedData.password)
       toast.success("Logged in successfully!")
       if (role === "merchant") {
         router.push("/dashboard")
