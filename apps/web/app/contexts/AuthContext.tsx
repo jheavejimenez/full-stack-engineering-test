@@ -3,14 +3,14 @@
 import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { DecodedToken, User } from '@/app/services/types';
-import { login as apiLogin, signup as apiSignup } from '@/app/services/api';
 import { jwtDecode } from 'jwt-decode';
+import { login as apiLogin, signup as apiSignup } from "../services/auth";
 
 interface AuthContextType {
   user: User | null;
   role: string | null;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, role: string,  email: string, password: string) => Promise<void>;
+  signup: (name: string, role: string, email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
