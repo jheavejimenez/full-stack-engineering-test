@@ -1,4 +1,5 @@
 import { IsEmail, IsEnum, IsString, MinLength } from 'class-validator';
+import { UserRole } from '../../enums/enums';
 
 export class SignupRequestDto {
   @IsString()
@@ -11,6 +12,6 @@ export class SignupRequestDto {
   @MinLength(8)
   password: string;
 
-  @IsEnum(['merchant', 'customer'])
-  role: 'merchant' | 'customer';
+  @IsEnum(UserRole)
+  role: UserRole;
 }
