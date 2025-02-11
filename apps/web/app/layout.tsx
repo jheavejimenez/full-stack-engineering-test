@@ -9,6 +9,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata = {
   title: "E-commerce Platform",
   description: "A comprehensive e-commerce platform with customer store and merchant dashboard",
+    generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -27,3 +28,6 @@ export default function RootLayout({
   )
 }
 
+
+
+import './globals.css'
