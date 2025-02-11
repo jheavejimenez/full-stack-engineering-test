@@ -13,6 +13,7 @@ import { OrderItem } from './orders/entities/order-item.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guards';
 import { Payment } from './payments/entities/payment.entity';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -36,6 +37,10 @@ import { Payment } from './payments/entities/payment.entity';
         logging: configService.get<boolean>('DB_LOGGING'),
       }),
     }),
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 50,
+    }]),
   ],
   controllers: [],
   providers: [
