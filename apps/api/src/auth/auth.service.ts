@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { SignupRequestDto } from './dto/signup-request.dto';
-import { UserResponseDto } from '../users/dto/user-response.dto';
+import { UserResponseDto, UserWithPasswordDto } from '../users/dto/user-response.dto';
 import { CreateUserDto } from '../users/dto/create-users.dto';
 import { plainToInstance } from 'class-transformer';
 import { UserRole } from '../enums/enums';
@@ -20,7 +20,7 @@ export class AuthService {
     if (!user) {
       throw new BadRequestException('User not found');
     }
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = bcrypt.compareSync(password, user.password);
     if (!isMatch) {
       throw new BadRequestException('Invalid password');
     }
@@ -51,8 +51,8 @@ export class AuthService {
     if (existingUser) {
       throw new BadRequestException('Email already registered');
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     const createUserDto = new CreateUserDto();
     createUserDto.email = email;

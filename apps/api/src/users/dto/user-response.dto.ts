@@ -18,7 +18,9 @@ export class UserResponseDto {
 
   @Expose()
   updated_at: Date;
+}
 
-  @Exclude()
+export class UserWithPasswordDto extends UserResponseDto {
+  @Expose()
   password: string;
 }
