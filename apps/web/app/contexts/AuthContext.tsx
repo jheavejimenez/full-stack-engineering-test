@@ -10,7 +10,7 @@ interface AuthContextType {
   user: User | null;
   role: string | null;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  signup: (name: string, role: string,  email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
