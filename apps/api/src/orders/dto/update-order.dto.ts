@@ -1,10 +1,10 @@
-import { IsEnum, IsOptional, ValidateNested, IsArray, IsNumber, Min } from 'class-validator';
+import { IsEnum, IsOptional, ValidateNested, IsArray, IsNumber, Min, IsUUID } from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrderStatus } from '../../enums/enums';
 import { CreateProductDto } from '../../products/dto/create-product.dto';
 
 class UpdateOrderItemDto {
-  @IsNumber()
+  @IsUUID()
   id: number;
 
   @ValidateNested()

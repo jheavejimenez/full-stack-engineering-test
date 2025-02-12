@@ -39,7 +39,7 @@ export class OrdersService {
     const orderItems = items.map((item) =>
       this.orderItemRepository.create({
         order: savedOrder,
-        product: { id: item.productId },
+        product: { id: item.product.id },
         quantity: item.quantity,
         price: item.price,
       }),
@@ -47,7 +47,14 @@ export class OrdersService {
 
     await this.orderItemRepository.save(orderItems);
 
-    const orderWithItems = await this.findOne(savedOrder.id, customerId);
+    // // Update the stock of the products
+    // for (const item of items) {
+    //   const product = await this.productsService.findProductById(item.productId);
+    //   product.stock -= item.quantity;
+    //   await this.productsService.updateProductStock(product.id, product.stock);
+    // }
+
+      const orderWithItems = await this.findOne(savedOrder.id, customerId);
     return plainToInstance(OrderResponseDto, orderWithItems);
   }
 
@@ -74,6 +81,10 @@ export class OrdersService {
       where: { customer: { id: customerId }, status: OrderStatus.PENDING },
       relations: ['items', 'items.product'],
     });
+    if (!orders) {
+      throw new NotFoundException(`No pending order found for customer with ID ${customerId}.`);
+    }
+
     return plainToInstance(OrderResponseDto, orders);
   }
 
@@ -146,6 +157,12 @@ export class OrdersService {
       for (const itemDto of updateOrderDto.items) {
         const existingItem = existingItemsMap.get(itemDto.id);
         if (existingItem) {
+
+          // const quantityDifference = itemDto.quantity - existingItem.quantity;
+          // const product = await this.productsService.findProductById(itemDto.id);
+          // product.stock -= quantityDifference;
+          // await this.productsService.updateProductStock(product.id, product.stock);
+          //
           existingItem.quantity = itemDto.quantity;
           existingItem.price = itemDto.price;
         } else {
@@ -155,6 +172,11 @@ export class OrdersService {
             quantity: itemDto.quantity,
             price: itemDto.price,
           });
+          //
+          // const product = await this.productsService.findProductById(itemDto.id);
+          // product.stock -= itemDto.quantity;
+          // await this.productsService.updateProductStock(product.id, product.stock);
+
           existingItems.push(newItem);
         }
       }

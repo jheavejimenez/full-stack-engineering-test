@@ -28,23 +28,25 @@ export interface AuthResponse {
   access_token: string;
 }
 
+interface OrderItem {
+  id: string
+  quantity: number
+  price: string
+  created_at: string
+  product: {
+    id: string
+    name: string
+    price: string
+    stock: number
+    description: string
+  }
+}
+
 export interface Order {
-  id: string;
-  status: string;
-  totalPrice: string;
-  items: {
-    id: string;
-    quantity: number;
-    price: string;
-    created_at: string;
-    product: {
-      id: string;
-      name: string;
-      price: string;
-      stock: number;
-      description: string;
-    };
-  }[];
+  id: string
+  status: string
+  totalPrice: string
+  items: OrderItem[]
 }
 
 export interface DecodedToken {

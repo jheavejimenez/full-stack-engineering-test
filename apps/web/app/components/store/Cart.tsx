@@ -6,37 +6,68 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Order } from '@/app/utils/types';
 import { getPendingOrder, removeFromOrder } from '@/app/services/orders';
+import { Trash2 } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Order } from '@/app/utils/types';
 
 export default function Cart(): JSX.Element {
-  const [order, setOrder] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const { user, role } = useAuth();
 
-  useEffect(() => {
-    fetchCustomerOrders();
-  }, [user, role]);
-
-  const fetchCustomerOrders = async () => {
-    try {
-      if (user) {
-        const orders = await getPendingOrder();
-        setOrder(orders);
+  const fetchCustomerOrders = async (retries = 5, delay = 1000) => {
+    if (user && role === 'customer') {
+      for (let attempt = 0; attempt < retries; attempt++) {
+        try {
+          // Attempt to fetch the pending order
+          const fetchedOrder = await getPendingOrder();
+          setOrders(fetchedOrder);
+          setIsLoading(false);
+          return; // Exit function after successful fetch
+        } catch (err) {
+          // If the last retry fails, show the toast error
+          if (attempt === retries - 1) {
+            toast('Failed to fetch cart after multiple attempts.');
+          } else {
+            // Wait for the exponential backoff delay
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            delay *= 2; // Double the delay for the next retry
+          }
+        }
       }
-    } catch (error) {
-      console.error('Failed to fetch orders:', error);
-      toast.error('Failed to load orders');
-    } finally {
+    } else {
       setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    let pollingInterval;
+
+    async function startPolling() {
+      // Initial fetch
+      await fetchCustomerOrders();
+
+      // Set up polling interval
+      pollingInterval = setInterval(async () => {
+        await fetchCustomerOrders();
+      }, 10000); // Poll every 10 seconds
+    }
+
+    startPolling();
+
+    return () => {
+      // Clear interval on component unmount
+      clearInterval(pollingInterval);
+    };
+  }, []);
+
   const handleRemoveFromCart = async (productId: string) => {
     try {
       const updatedOrder = await removeFromOrder(productId);
-      setOrder(updatedOrder);
+      setOrders(updatedOrder);
       toast.success('Item removed from cart');
     } catch (err) {
       toast.error('Failed to remove item from cart');
@@ -58,42 +89,53 @@ export default function Cart(): JSX.Element {
   }
 
   if (isLoading) return <div>Loading cart...</div>;
+
   return (
-    <Card>
+    <Card className='w-full max-w-sm'>
       <CardHeader>
         <CardTitle>Your Cart</CardTitle>
       </CardHeader>
       <CardContent>
-        {!order || order.length === 0 || order[0].items.length === 0 ? (
-          <p>Your cart is empty</p>
+        {orders.length === 0 ? (
+          <p className='text-center text-muted-foreground'>Your cart is empty</p>
         ) : (
-          <div className="space-y-2">
-            {order[0].items.map((item) => (
-              <div key={item.id} className="flex justify-between items-center">
-                <span>{item.product.name}</span>
-                <div>
-            <span className="mr-2">
-              ${Number(item.product.price).toFixed(2)} x {item.quantity}
-            </span>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleRemoveFromCart(item.product.id)}
-                  >
-                    Remove
-                  </Button>
-                </div>
+          <ScrollArea className='h-[300px] pr-4'>
+            {orders.map((order) => (
+              <div key={order.id}>
+                <h3 className='font-semibold mb-2'>Order #{order.id.slice(-6)}</h3>
+                {order.items.map((item) => (
+                  <div key={item.id} className='flex justify-between items-center mb-4'>
+                    <div>
+                      <p className='font-medium'>{item.product.name}</p>
+                      <p className='text-sm text-muted-foreground'>
+                        ${Number.parseFloat(item.price).toFixed(2)} x {item.quantity}
+                      </p>
+                    </div>
+                    <div className='flex items-center'>
+                      <p className='font-medium mr-2'>${(Number.parseFloat(item.price) * item.quantity).toFixed(2)}</p>
+                      <Button variant='ghost' size='icon' onClick={() => handleRemoveFromCart(order.id, item.id)}>
+                        <Trash2 className='h-4 w-4' />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                <Separator className='my-4' />
               </div>
             ))}
-          </div>
+          </ScrollArea>
         )}
       </CardContent>
-      {order && order.length > 0 && order[0].items.length > 0 && (
-        <CardFooter className="flex-col items-stretch">
-          <div className="mb-4 text-right">
-            <strong>Total: ${order[0].items.reduce((sum, item) => sum + item.product.price * item.quantity, 0).toFixed(2)}</strong>
+      {orders.length > 0 && (
+        <CardFooter className='flex-col items-stretch mt-4'>
+          <div className='flex justify-between items-center mb-4'>
+            <p className='font-semibold'>Total:</p>
+            <p className='font-bold text-lg'>
+              ${orders.reduce((total, order) => total + Number.parseFloat(order.totalPrice), 0).toFixed(2)}
+            </p>
           </div>
-          <Button onClick={handleCheckout}>Proceed to Checkout</Button>
+          <Button onClick={handleCheckout} className='w-full'>
+            Proceed to Checkout
+          </Button>
         </CardFooter>
       )}
     </Card>

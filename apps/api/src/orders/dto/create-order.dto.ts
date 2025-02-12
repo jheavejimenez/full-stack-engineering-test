@@ -1,10 +1,12 @@
 import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsUUID, Min, ValidateNested } from 'class-validator';
 import { OrderStatus } from '../../enums/enums';
 import { Type } from 'class-transformer';
+import { CreateProductDto } from '../../products/dto/create-product.dto';
 
 class CreateOrderItemDto {
-  @IsNumber()
-  productId: number;
+  @ValidateNested()
+  @Type(() => CreateProductDto)
+  product: CreateProductDto;
 
   @IsNumber()
   @Min(1)
@@ -17,7 +19,6 @@ class CreateOrderItemDto {
 
 export class CreateOrderDto {
   @IsUUID()
-  @IsNotEmpty()
   customerId: number;
 
   @IsEnum(OrderStatus)

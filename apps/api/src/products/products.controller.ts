@@ -13,29 +13,30 @@ import { Product } from './entities/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Public } from '../auth/decorator/public.decorator';
+import { ProductResponseDto } from './dto/product-response.dto';
 
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
-  async create(@Body() createProductDto: CreateProductDto, @Req() req): Promise<Product> {
+  async create(@Body() createProductDto: CreateProductDto, @Req() req): Promise<ProductResponseDto> {
     return this.productsService.createProduct(createProductDto, req.user.id);
   }
 
   @Get()
   @Public()
-  async findAll(): Promise<Product[]> {
+  async findAll(): Promise<ProductResponseDto[]> {
     return this.productsService.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseUUIDPipe) id: number): Promise<Product> {
+  async findOne(@Param('id', ParseUUIDPipe) id: number): Promise<ProductResponseDto> {
     return this.productsService.findProductById(id);
   }
 
   @Get('merchant')
-  async findByMerchant(@Req() req): Promise<Product[]> {
+  async findByMerchant(@Req() req): Promise<ProductResponseDto[]> {
     return this.productsService.findProductsByMerchant(req.user.id);
   }
 
@@ -43,7 +44,7 @@ export class ProductsController {
   async findProductByMerchant(
     @Param('id', ParseUUIDPipe) id: number,
     @Req() req,
-  ): Promise<Product> {
+  ): Promise<ProductResponseDto> {
     return this.productsService.findProductByMerchant(id, req.user.id);
   }
 
@@ -52,7 +53,7 @@ export class ProductsController {
     @Param('id', ParseUUIDPipe) id: number,
     @Req() req,
     @Body() updateProductDto: UpdateProductDto
-  ): Promise<Product> {
+  ): Promise<ProductResponseDto> {
     return this.productsService.update(id, req.user.id, updateProductDto);
   }
 
