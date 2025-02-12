@@ -1,4 +1,4 @@
-import { AuthResponse, LoginCredentials, SignupCredentials } from '@/app/services/types';
+import { AuthResponse, LoginCredentials, SignupCredentials } from '@/app/utils/types';
 import { fetchWithAuth } from '@/app/services/api';
 
 export async function login(credentials: LoginCredentials): Promise<AuthResponse> {

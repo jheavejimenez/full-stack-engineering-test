@@ -12,13 +12,23 @@ export class ProductsService {
     private readonly productRepository: Repository<Product>,
   ) {}
 
-  async create(createProductDto: CreateProductDto): Promise<Product> {
-    const product = this.productRepository.create(createProductDto);
+  async createProduct(createProductDto: CreateProductDto, merchantId: number): Promise<Product> {
+    const product = this.productRepository.create({
+      ...createProductDto,
+      merchant: { id: merchantId },
+    });
     return this.productRepository.save(product);
   }
 
   async findAll(): Promise<Product[]> {
     return this.productRepository.find();
+  }
+
+  async findProductsByMerchant(merchantId: number): Promise<Product[]> {
+    return this.productRepository.createQueryBuilder('product')
+      .where('product.merchantId = :merchantId', { merchantId })
+      .orderBy('product.created_at', 'DESC')
+      .getMany();
   }
 
   async findOne(id: number): Promise<Product> {
@@ -30,13 +40,13 @@ export class ProductsService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
-    const product = await this.findOne(id); // Reuse `findOne` to ensure the product exists
-    Object.assign(product, updateProductDto); // Merge update data into the product entity
+    const product = await this.findOne(id);
+    Object.assign(product, updateProductDto);
     return this.productRepository.save(product);
   }
 
   async remove(id: number): Promise<void> {
-    const product = await this.findOne(id); // Reuse `findOne` to ensure the product exists
+    const product = await this.findOne(id);
     await this.productRepository.remove(product);
   }
 }

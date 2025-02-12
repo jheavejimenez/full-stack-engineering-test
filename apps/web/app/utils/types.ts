@@ -2,6 +2,7 @@ export interface Product {
   id: string;
   name: string;
   price: number;
+  stock: number;
   description: string;
 }
 
@@ -27,9 +28,11 @@ export interface AuthResponse {
   access_token: string;
 }
 
-
 export interface Order {
-
+  id: number;
+  status: string;
+  totalPrice: number;
+  items: { productId: number; quantity: number; price: number }[];
 }
 
 export interface DecodedToken {

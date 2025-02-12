@@ -2,14 +2,14 @@
 
 import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
-import type { DecodedToken, User } from '@/app/services/types';
+import type { DecodedToken, User } from '@/app/utils/types';
 import { jwtDecode } from 'jwt-decode';
 import { login as apiLogin, signup as apiSignup } from "../services/auth";
 
 interface AuthContextType {
   user: User | null;
   role: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ role: string }>
   signup: (name: string, role: string, email: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -42,6 +42,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setRole(decodedToken.role);
     localStorage.setItem('user', JSON.stringify(user));
     localStorage.setItem('access_token', response.access_token);
+
+    return { role: decodedToken.role };
   };
 
   const signup = async (name: string, role: string, email: string, password: string) => {
@@ -65,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('access_token');
   };
 
-  return <AuthContext.Provider value={{ user, role, login, signup, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, role, login, signup, logout }}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

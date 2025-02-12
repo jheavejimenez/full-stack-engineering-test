@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { CreateOrderDto } from './dto/create-oder.dto';
@@ -11,6 +11,11 @@ export class OrdersController {
   @Get()
   async findAll(@Req() req) {
     return this.ordersService.findAll(req.user.id);
+  }
+
+  @Get('merchant/:id')
+  async findOrdersByMerchant(@Param('id') id: number) {
+    return this.ordersService.findOrdersByMerchant(id);
   }
 
   @Get(':id')

@@ -1,4 +1,4 @@
-import { Order } from '@/app/services/types';
+import { Order } from '@/app/utils/types';
 import { fetchWithAuth } from '@/app/services/api';
 
 export async function getOrders(): Promise<Order[]> {
@@ -30,7 +30,11 @@ export async function deleteOrder(id: string): Promise<void> {
 }
 
 export async function getPendingOrder(): Promise<Order | null> {
-  return fetchWithAuth("/orders/pending")
+  return fetchWithAuth("/orders")
+}
+
+export async function fetchMerchantOrders(merchantId: number): Promise<Order[]> {
+  return  fetchWithAuth(`/orders/merchant/${merchantId}`);
 }
 
 export async function addToOrder(productId: string, quantity = 1): Promise<Order> {
@@ -71,7 +75,6 @@ export async function removeFromOrder(productId: string): Promise<Order | null> 
   return null
 }
 
-// Replace getCart, addToCart, and removeFromCart with these new functions
 export async function getCart(): Promise<Order | null> {
   return getPendingOrder()
 }

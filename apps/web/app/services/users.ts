@@ -1,5 +1,5 @@
 import { fetchWithAuth } from '@/app/services/api';
-import { User } from '@/app/services/types';
+import { User } from '@/app/utils/types';
 
 export async function getUsers(): Promise<User[]> {
   return fetchWithAuth("/users")

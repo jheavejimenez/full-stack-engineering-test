@@ -11,9 +11,16 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const response = await fetch(`${API_BASE_URL}${url}`, { ...options, headers })
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message);
+    throw new Error(`Failed to delete product: ${response.statusText}`)
   }
 
-  return response.json()
+  const text = await response.text()
+  if (text) {
+    try {
+      return JSON.parse(text)
+    } catch (error) {
+      console.error("Error parsing JSON:", error)
+      throw new Error("Invalid response from server")
+    }
+  }
 }

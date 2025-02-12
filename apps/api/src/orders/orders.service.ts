@@ -47,8 +47,15 @@ export class OrdersService {
     return this.findOne(savedOrder.id, customerId);
   }
 
+  async findOrdersByMerchant(merchantId: number): Promise<Order[]> {
+    return this.orderRepository.createQueryBuilder('order')
+      .leftJoinAndSelect('order.items', 'orderItem')
+      .leftJoinAndSelect('orderItem.product', 'product')
+      .where('product.merchantId = :merchantId', { merchantId })
+      .getMany();
+  }
+
   async findAll(customerId: number): Promise<Order[]> {
-    console.log('customerId', customerId);
     return this.orderRepository.find({
       where: { customer: { id: customerId } },
       relations: ['items', 'items.product'],
