@@ -63,7 +63,6 @@ export class OrdersService {
       .leftJoinAndSelect('order.items', 'orderItem')
       .leftJoinAndSelect('orderItem.product', 'product')
       .where('product.merchantId = :merchantId', { merchantId })
-      .orderBy('order.createdAt', 'DESC')
       .getMany();
     return plainToInstance(OrderResponseDto, orders);
   }
