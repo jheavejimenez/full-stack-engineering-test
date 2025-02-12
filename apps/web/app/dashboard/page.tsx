@@ -19,7 +19,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
+            <CardTitle>Customers Orders</CardTitle>
           </CardHeader>
           <CardContent>
             <OrderList />

@@ -75,10 +75,20 @@ export class OrdersService {
     return order;
   }
 
-  async updateOrder(orderId: number, customerId: number, updateOrderDto: UpdateOrderDto): Promise<Order> {
-    const order = await this.findOne(orderId, customerId);
+  async updateOrder(orderId: number, merchantId: number, updateOrderDto: UpdateOrderDto): Promise<Order> {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+      relations: ['items', 'items.product', 'items.product.merchant'],
+    });
+
     if (!order) {
-      throw new NotFoundException(`Order with ID ${orderId} not found for this user.`);
+      throw new NotFoundException(`Order with ID ${orderId} not found.`);
+    }
+
+    // Check if all products in the order items belong to the merchant
+    const invalidItems = order.items.filter(item => item.product.merchant.id !== merchantId);
+    if (invalidItems.length > 0) {
+      throw new BadRequestException(`Order contains products that do not belong to merchant with ID ${merchantId}.`);
     }
 
     if (updateOrderDto.status) {

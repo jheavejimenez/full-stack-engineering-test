@@ -18,7 +18,7 @@ export async function createOrder(order: Omit<Order, "id">): Promise<Order> {
 
 export async function updateOrder(id: string, order: Partial<Order>): Promise<Order> {
   return fetchWithAuth(`/orders/${id}`, {
-    method: "PUT",
+    method: "PATCH",
     body: JSON.stringify(order),
   })
 }
