@@ -29,27 +29,35 @@ export class ProductsController {
     return this.productsService.findAll();
   }
 
+  @Get(':id')
+  async findOne(@Param('id', ParseUUIDPipe) id: number): Promise<Product> {
+    return this.productsService.findProductById(id);
+  }
+
   @Get('merchant')
   async findByMerchant(@Req() req): Promise<Product[]> {
     return this.productsService.findProductsByMerchant(req.user.id);
   }
 
-  @Get(':id')
-  @Public()
-  async findOne(@Param('id', ParseUUIDPipe) id: number): Promise<Product> {
-    return this.productsService.findOne(id);
+  @Get(':id/merchant')
+  async findProductByMerchant(
+    @Param('id', ParseUUIDPipe) id: number,
+    @Req() req,
+  ): Promise<Product> {
+    return this.productsService.findProductByMerchant(id, req.user.id);
   }
 
   @Put(':id')
   async update(
     @Param('id', ParseUUIDPipe) id: number,
+    @Req() req,
     @Body() updateProductDto: UpdateProductDto
   ): Promise<Product> {
-    return this.productsService.update(id, updateProductDto);
+    return this.productsService.update(id, req.user.id, updateProductDto);
   }
 
   @Delete(':id')
-  async remove(@Param('id', ParseUUIDPipe) id: number): Promise<void> {
-    return this.productsService.remove(id);
+  async remove(@Param('id', ParseUUIDPipe) id: number, @Req() req): Promise<void> {
+    return this.productsService.remove(id, req.user.id);
   }
 }

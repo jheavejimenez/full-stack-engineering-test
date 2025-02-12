@@ -4,7 +4,10 @@ import { Repository } from 'typeorm';
 import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { CreateOrderDto } from './dto/create-oder.dto';
+import { OrderStatus, UserRole } from '../enums/enums';
+import { OrderResponseDto } from './dto/order-response.dto';
+import { plainToInstance } from 'class-transformer';
+import { CreateOrderDto } from './dto/create-order.dto';
 
 @Injectable()
 export class OrdersService {
@@ -16,7 +19,7 @@ export class OrdersService {
   ) {
   }
 
-  async createOrder(createOrderDto: CreateOrderDto, customerId: number): Promise<Order> {
+  async createOrder(createOrderDto: CreateOrderDto, customerId: number): Promise<OrderResponseDto> {
     const { items, status } = createOrderDto;
 
     if (!items || items.length === 0) {
@@ -44,25 +47,37 @@ export class OrdersService {
 
     await this.orderItemRepository.save(orderItems);
 
-    return this.findOne(savedOrder.id, customerId);
+    const orderWithItems = await this.findOne(savedOrder.id, customerId);
+    return plainToInstance(OrderResponseDto, orderWithItems);
   }
 
-  async findOrdersByMerchant(merchantId: number): Promise<Order[]> {
-    return this.orderRepository.createQueryBuilder('order')
+  async findOrdersByMerchant(merchantId: number): Promise<OrderResponseDto[]> {
+    const orders = await this.orderRepository.createQueryBuilder('order')
       .leftJoinAndSelect('order.items', 'orderItem')
       .leftJoinAndSelect('orderItem.product', 'product')
       .where('product.merchantId = :merchantId', { merchantId })
+      .orderBy('order.createdAt', 'DESC')
       .getMany();
+    return plainToInstance(OrderResponseDto, orders);
   }
 
-  async findAll(customerId: number): Promise<Order[]> {
-    return this.orderRepository.find({
+  async findAll(customerId: number): Promise<OrderResponseDto[]> {
+    const orders = await this.orderRepository.find({
       where: { customer: { id: customerId } },
       relations: ['items', 'items.product'],
     });
+    return plainToInstance(OrderResponseDto, orders);
   }
 
-  async findOne(orderId: number, customerId: number): Promise<Order> {
+  async findPendingOrders(customerId: number): Promise<OrderResponseDto[]> {
+    const orders = await this.orderRepository.find({
+      where: { customer: { id: customerId }, status: OrderStatus.PENDING },
+      relations: ['items', 'items.product'],
+    });
+    return plainToInstance(OrderResponseDto, orders);
+  }
+
+  async findOne(orderId: number, customerId: number): Promise<OrderResponseDto> {
     const order = await this.orderRepository.findOne({
       where: { id: orderId, customer: { id: customerId } },
       relations: ['items', 'items.product'],
@@ -72,10 +87,10 @@ export class OrdersService {
       throw new NotFoundException(`Order with ID ${orderId} not found for this user.`);
     }
 
-    return order;
+    return plainToInstance(OrderResponseDto, order);
   }
 
-  async updateOrder(orderId: number, merchantId: number, updateOrderDto: UpdateOrderDto): Promise<Order> {
+  async updateOrderStatus(orderId: number, userId: number, status: OrderStatus, role: UserRole): Promise<OrderResponseDto> {
     const order = await this.orderRepository.findOne({
       where: { id: orderId },
       relations: ['items', 'items.product', 'items.product.merchant'],
@@ -85,10 +100,39 @@ export class OrdersService {
       throw new NotFoundException(`Order with ID ${orderId} not found.`);
     }
 
-    // Check if all products in the order items belong to the merchant
-    const invalidItems = order.items.filter(item => item.product.merchant.id !== merchantId);
-    if (invalidItems.length > 0) {
-      throw new BadRequestException(`Order contains products that do not belong to merchant with ID ${merchantId}.`);
+    if (role === UserRole.MERCHANT) {
+      const invalidItems = order.items.filter(item => item.product.merchant.id !== userId);
+      if (invalidItems.length > 0) {
+        throw new BadRequestException(`Order contains products that do not belong to merchant with ID ${userId}.`);
+      }
+    } else if (role === UserRole.CUSTOMER) {
+      if (order.customer.id !== userId) {
+        throw new BadRequestException(`Order does not belong to customer with ID ${userId}.`);
+      }
+      if (status !== OrderStatus.COMPLETED) {
+        throw new BadRequestException(`Customer can only update the status to COMPLETED.`);
+      }
+    } else {
+      throw new BadRequestException(`Invalid user role.`);
+    }
+
+    order.status = status;
+    const updatedOrder = await this.orderRepository.save(order);
+    return plainToInstance(OrderResponseDto, updatedOrder);
+  }
+
+  async updateOrder(orderId: number, userId: number, updateOrderDto: UpdateOrderDto): Promise<OrderResponseDto> {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+      relations: ['customer', 'items', 'items.product', 'items.product.merchant'],
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${orderId} not found.`);
+    }
+
+    if (order.customer.id !== userId) {
+      throw new BadRequestException(`Order does not belong to customer with ID ${userId}.`);
     }
 
     if (updateOrderDto.status) {
@@ -107,7 +151,7 @@ export class OrdersService {
         } else {
           const newItem = this.orderItemRepository.create({
             order,
-            product: { id: itemDto.id },
+            product: { id: itemDto.product.id },
             quantity: itemDto.quantity,
             price: itemDto.price,
           });
@@ -116,14 +160,28 @@ export class OrdersService {
       }
 
       await this.orderItemRepository.save(existingItems);
+
+      // Update the order items with the new quantities and prices
+      order.items = existingItems;
     }
 
-    return this.orderRepository.save(order);
+    order.totalPrice = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    const updatedOrder = await this.orderRepository.save(order);
+    return plainToInstance(OrderResponseDto, updatedOrder);
   }
 
   async removeOrder(orderId: number, customerId: number): Promise<void> {
-    const order = await this.findOne(orderId, customerId);
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId, customer: { id: customerId } },
+      relations: ['items', 'items.product'],
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${orderId} not found for this user.`);
+    }
 
     await this.orderRepository.remove(order);
   }
+
 }

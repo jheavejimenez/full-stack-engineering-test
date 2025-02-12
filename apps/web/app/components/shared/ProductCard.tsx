@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { JSX, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,12 +8,13 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Product } from '@/app/utils/types';
 import { addToOrder } from '@/app/services/orders';
+import { UserRole } from '@/app/utils/enums';
 
 interface ProductCardProps {
   product: Product;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product }: ProductCardProps): JSX.Element {
   const [isAdding, setIsAdding] = useState(false);
   const { user, role } = useAuth();
   const router = useRouter();
@@ -30,7 +31,8 @@ export default function ProductCard({ product }: ProductCardProps) {
       await addToOrder(product.id);
       toast.success(`${product.name} added to cart`);
     } catch (err) {
-      toast.error('Failed to add to cart. Please try again.');
+      console.log(err)
+      toast.error('Failed to add to cart. Please try again.', err);
     } finally {
       setIsAdding(false);
     }
@@ -51,7 +53,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <p className='mt-2 text-sm text-muted-foreground'>Stock: {product.stock}</p>
       </CardContent>
       <CardFooter>
-        {role === 'merchant' ? (
+        {role === UserRole.MERCHANT ? (
           <Button className='w-full' onClick={handleRedirect}>
             Edit
           </Button>
@@ -64,4 +66,3 @@ export default function ProductCard({ product }: ProductCardProps) {
     </Card>
   );
 }
-

@@ -29,10 +29,22 @@ export interface AuthResponse {
 }
 
 export interface Order {
-  id: number;
+  id: string;
   status: string;
-  totalPrice: number;
-  items: { productId: number; quantity: number; price: number }[];
+  totalPrice: string;
+  items: {
+    id: string;
+    quantity: number;
+    price: string;
+    created_at: string;
+    product: {
+      id: string;
+      name: string;
+      price: string;
+      stock: number;
+      description: string;
+    };
+  }[];
 }
 
 export interface DecodedToken {

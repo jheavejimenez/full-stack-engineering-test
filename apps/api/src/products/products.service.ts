@@ -10,7 +10,8 @@ export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-  ) {}
+  ) {
+  }
 
   async createProduct(createProductDto: CreateProductDto, merchantId: number): Promise<Product> {
     const product = this.productRepository.create({
@@ -27,26 +28,38 @@ export class ProductsService {
   async findProductsByMerchant(merchantId: number): Promise<Product[]> {
     return this.productRepository.createQueryBuilder('product')
       .where('product.merchantId = :merchantId', { merchantId })
-      .orderBy('product.created_at', 'DESC')
+      .orderBy('product.created_at', 'ASC')
       .getMany();
   }
 
-  async findOne(id: number): Promise<Product> {
-    const product = await this.productRepository.findOneBy({ id });
+  async findProductById(productId: number): Promise<Product> {
+    const product = await this.productRepository.findOne({
+      where: { id: productId },
+    });
     if (!product) {
-      throw new NotFoundException(`Product with ID ${id} not found`);
+      throw new NotFoundException(`Product with ID ${productId} not found`);
     }
     return product;
   }
 
-  async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
-    const product = await this.findOne(id);
+  async findProductByMerchant(productId: number, merchantId: number): Promise<Product> {
+    const product = await this.productRepository.findOne({
+      where: { id: productId, merchant: { id: merchantId } },
+    });
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${productId} not found for merchant with ID ${merchantId}`);
+    }
+    return product;
+  }
+
+  async update(productId: number, merchantId: number, updateProductDto: UpdateProductDto): Promise<Product> {
+    const product = await this.findProductByMerchant(productId, merchantId);
     Object.assign(product, updateProductDto);
     return this.productRepository.save(product);
   }
 
-  async remove(id: number): Promise<void> {
-    const product = await this.findOne(id);
+  async remove(productId: number, merchantId: number): Promise<void> {
+    const product = await this.findProductByMerchant(productId, merchantId);
     await this.productRepository.remove(product);
   }
 }

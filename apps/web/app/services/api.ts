@@ -11,16 +11,12 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const response = await fetch(`${API_BASE_URL}${url}`, { ...options, headers })
 
   if (!response.ok) {
-    throw new Error(`Failed to delete product: ${response.statusText}`)
+    throw new Error("Failed to fetch data");
+  }
+  const contentType = response.headers.get('Content-Type') || '';
+  if (contentType.includes('application/json')) {
+    return await response.json();
   }
 
-  const text = await response.text()
-  if (text) {
-    try {
-      return JSON.parse(text)
-    } catch (error) {
-      console.error("Error parsing JSON:", error)
-      throw new Error("Invalid response from server")
-    }
-  }
+  return null;
 }

@@ -1,7 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Req } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { CreateOrderDto } from './dto/create-oder.dto';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { OrderStatus } from '../enums/enums';
 
 @Controller('orders')
 export class OrdersController {
@@ -11,6 +12,11 @@ export class OrdersController {
   @Get()
   async findAll(@Req() req) {
     return this.ordersService.findAll(req.user.id);
+  }
+
+  @Get('pending')
+  async findPendingOrders(@Req() req) {
+    return this.ordersService.findPendingOrders(req.user.id);
   }
 
   @Get('merchant/:id')
@@ -35,6 +41,16 @@ export class OrdersController {
     @Req() req,
   ) {
     return this.ordersService.updateOrder(id, req.user.id, updateOrderDto);
+  }
+
+  @Patch(':id/status')
+  async updateStatus(
+    @Param('id') id: number,
+    @Body('status') status: OrderStatus,
+    @Req() req,
+  ) {
+    const role = req.user.role;
+    return this.ordersService.updateOrderStatus(id, req.user.id, status, role);
   }
 
   @Delete(':id')

@@ -3,17 +3,20 @@
 import { useEffect, useState } from "react"
 import ProductCard from "../shared/ProductCard"
 import type { Product } from "@/app/utils/types"
-import { getProducts } from '@/app/services/products';
+import { getProducts, getMerchantProducts } from '@/app/services/products';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { UserRole } from '@/app/utils/enums';
 
 export default function ProductList() {
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { user, role } = useAuth();
 
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const fetchedProducts = await getProducts()
+        const fetchedProducts = role === UserRole.MERCHANT ? await getMerchantProducts() : await getProducts();
         setProducts(fetchedProducts)
       } catch (err) {
         setError("Failed to fetch products")
@@ -22,7 +25,7 @@ export default function ProductList() {
       }
     }
     fetchProducts()
-  }, [])
+  }, [user, role])
 
   if (isLoading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
@@ -35,4 +38,3 @@ export default function ProductList() {
     </div>
   )
 }
-

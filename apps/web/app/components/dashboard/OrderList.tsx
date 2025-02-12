@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react';
+import { JSX, useEffect, useState } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { fetchMerchantOrders, updateOrder } from '@/app/services/orders';
+import { fetchMerchantOrders, updateOrderStatus } from '@/app/services/orders';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Order } from '@/app/utils/types';
 import { toast } from 'sonner';
 import { Badge } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { OrderStatus } from '@/app/utils/enums';
 
 
-export default function OrderList() {
+export default function OrderList(): JSX.Element {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +38,7 @@ export default function OrderList() {
   };
   const handleShipOrder = async (orderId: string) => {
     try {
-      const updatedOrder = await updateOrder(orderId, { status: 'shipped' });
+      const updatedOrder = await updateOrderStatus(orderId, { status: OrderStatus.SHIPPED });
       setOrders(orders.map((order) => (order.id === orderId ? updatedOrder : order)));
       toast.success('Order status updated to shipped');
     } catch (error) {
@@ -60,7 +61,7 @@ export default function OrderList() {
         <p className='font-bold mt-2'>Total: ${Number(order.totalPrice).toFixed(2)}</p>
         <ul className='mt-2'>
           {order.items.map((item) => (
-            <li key={item.productId}>
+            <li key={item.id}>
              Quantity: {item.quantity}
             </li>
           ))}

@@ -9,6 +9,10 @@ export async function getProduct(id: string): Promise<Product> {
   return fetchWithAuth(`/products/${id}`);
 }
 
+export async function getMerchantProduct(id: string): Promise<Product> {
+  return fetchWithAuth(`/products/${id}/merchant`);
+}
+
 export async function getMerchantProducts(): Promise<Product[]> {
   return fetchWithAuth(`/products/merchant`);
 }

@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { JSX, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { toast } from 'sonner';
 import ProductForm from '@/app/components/shared/ProductForm';
-import { deleteProduct, getProduct, updateProduct } from '@/app/services/products';
+import { deleteProduct, getMerchantProduct, updateProduct } from '@/app/services/products';
 import { Product } from '@/app/utils/types';
 
-export default function EditProductPage() {
+export default function EditProductPage(): JSX.Element {
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function EditProductPage() {
   const fetchProduct = async () => {
     console.log(params.id);
     try {
-      const fetchedProduct = await getProduct(params.id as string);
+      const fetchedProduct = await getMerchantProduct(params.id as string);
       setProduct(fetchedProduct);
     } catch (error) {
       console.error('Failed to fetch product:', error);
@@ -34,7 +34,6 @@ export default function EditProductPage() {
   };
 
   const handleSubmit = async (data: Product) => {
-    console.log(data);
     try {
       await updateProduct(params.id, data);
       toast.success('Product updated successfully');

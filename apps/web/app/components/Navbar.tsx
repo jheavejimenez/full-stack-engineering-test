@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { UserRole } from '@/app/utils/enums';
 
 export default function Navbar() {
   const { user, role, logout } = useAuth();
@@ -14,7 +15,7 @@ export default function Navbar() {
           Our Store
         </Link>
         <div className='flex items-center space-x-4'>
-          {user && role === 'merchant' && (
+          {user && role === UserRole.MERCHANT && (
             <Link href='/dashboard' className='text-foreground hover:text-primary'>
               Dashboard
             </Link>

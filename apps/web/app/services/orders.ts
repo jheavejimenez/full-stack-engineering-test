@@ -1,83 +1,122 @@
 import { Order } from '@/app/utils/types';
 import { fetchWithAuth } from '@/app/services/api';
-
-export async function getOrders(): Promise<Order[]> {
-  return fetchWithAuth("/orders")
-}
+import { OrderStatus } from '@/app/utils/enums';
+import { getProduct } from '@/app/services/products';
 
 export async function getOrder(id: string): Promise<Order> {
-  return fetchWithAuth(`/orders/${id}`)
+  return fetchWithAuth(`/orders/${id}`);
 }
 
-export async function createOrder(order: Omit<Order, "id">): Promise<Order> {
-  return fetchWithAuth("/orders", {
-    method: "POST",
+export async function getPendingOrder(): Promise<Order[]> {
+  return fetchWithAuth('/orders/pending');
+}
+
+export async function fetchMerchantOrders(merchantId: number): Promise<Order[]> {
+  return fetchWithAuth(`/orders/merchant/${merchantId}`);
+}
+
+export async function createOrder(order: Order): Promise<Order> {
+  return fetchWithAuth('/orders', {
+    method: 'POST',
     body: JSON.stringify(order),
-  })
+  });
 }
 
 export async function updateOrder(id: string, order: Partial<Order>): Promise<Order> {
   return fetchWithAuth(`/orders/${id}`, {
-    method: "PATCH",
+    method: 'PATCH',
     body: JSON.stringify(order),
-  })
+  });
+}
+
+export async function updateOrderStatus(id: string, order: Partial<Order>): Promise<Order> {
+  return fetchWithAuth(`/orders/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify(order),
+  });
 }
 
 export async function deleteOrder(id: string): Promise<void> {
   await fetchWithAuth(`/orders/${id}`, {
-    method: "DELETE",
-  })
-}
-
-export async function getPendingOrder(): Promise<Order | null> {
-  return fetchWithAuth("/orders")
-}
-
-export async function fetchMerchantOrders(merchantId: number): Promise<Order[]> {
-  return  fetchWithAuth(`/orders/merchant/${merchantId}`);
+    method: 'DELETE',
+  });
 }
 
 export async function addToOrder(productId: string, quantity = 1): Promise<Order> {
-  const pendingOrder = await getPendingOrder()
+  const pendingOrders = await getPendingOrder();
+  let pendingOrder = pendingOrders.find((order) => order.status === OrderStatus.PENDING);
+
+  const product = await getProduct(productId);
 
   if (pendingOrder) {
-    // Update existing order
-    const existingItem = pendingOrder.items.find((item) => item.productId === productId)
-    if (existingItem) {
-      existingItem.quantity += quantity
-    } else {
-      pendingOrder.items.push({ productId, quantity })
+    if (!pendingOrder.items) {
+      pendingOrder.items = [];
     }
-    return updateOrder(pendingOrder.id, pendingOrder)
+
+    const existingItem = pendingOrder.items.find((item) => item.product.id === productId);
+
+    if (existingItem) {
+      existingItem.quantity += quantity;
+    } else {
+      pendingOrder.items.push({
+        quantity,
+        price: product.price,
+        product: {
+          id: productId,
+          name: product.name,
+          price: product.price,
+          stock: product.stock,
+          description: product.description,
+        },
+      });
+    }
+    pendingOrder.totalPrice = pendingOrder.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    return updateOrder(pendingOrder.id, pendingOrder);
   } else {
-    // Create new order
-    return createOrder({
-      status: "pending",
-      items: [{ productId, quantity }],
-      totalPrice: 0, // This will be calculated on the server
-    })
+    const newOrder = {
+      status: OrderStatus.PENDING,
+      items: [
+        {
+          quantity,
+          price: product.price,
+          created_at: new Date().toISOString(),
+          product: {
+            id: productId,
+            name: product.name,
+            price: product.price,
+            stock: product.stock,
+            description: product.description,
+          },
+        },
+      ],
+      totalPrice: product.price * quantity,
+    };
+    return createOrder(newOrder);
   }
 }
 
 export async function removeFromOrder(productId: string): Promise<Order | null> {
-  const pendingOrder = await getPendingOrder()
+  const orders = await getPendingOrder(); // This returns an array of orders
+  const pendingOrder = orders.find((order) => order.status === 'pending'); // Find the pending order
 
   if (pendingOrder) {
-    pendingOrder.items = pendingOrder.items.filter((item) => item.productId !== productId)
+    if (!pendingOrder.items) {
+      pendingOrder.items = []; // Initialize items if undefined
+    }
+
+    // Filter out the item to be removed
+    pendingOrder.items = pendingOrder.items.filter((item) => item.product.id !== productId);
+
     if (pendingOrder.items.length === 0) {
-      await deleteOrder(pendingOrder.id)
-      return null
+      // If no items remain, delete the order
+      await deleteOrder(pendingOrder.id);
+      return null;
     } else {
-      return updateOrder(pendingOrder.id, pendingOrder)
+      // Otherwise, update the order
+      return updateOrder(pendingOrder.id, pendingOrder);
     }
   }
 
-  return null
+  // Return null if no pending order exists
+  return null;
 }
-
-export async function getCart(): Promise<Order | null> {
-  return getPendingOrder()
-}
-
-export { addToOrder as addToCart }
-export { removeFromOrder as removeFromCart }
