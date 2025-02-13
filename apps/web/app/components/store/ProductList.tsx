@@ -16,7 +16,7 @@ export default function ProductList() {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const fetchedProducts = role === UserRole.MERCHANT ? await getMerchantProducts() : await getProducts();
+        const fetchedProducts = role === UserRole.MERCHANT ? await getMerchantProducts(user?.id) : await getProducts();
         setProducts(fetchedProducts)
       } catch (err) {
         setError("Failed to fetch products")

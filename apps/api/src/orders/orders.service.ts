@@ -62,7 +62,7 @@ export class OrdersService {
     const orders = await this.orderRepository.createQueryBuilder('order')
       .leftJoinAndSelect('order.items', 'orderItem')
       .leftJoinAndSelect('orderItem.product', 'product')
-      .where('product.merchantId = :merchantId', { merchantId })
+      .where('product.merchant.id = :merchantId', { merchantId })
       .getMany();
     return plainToInstance(OrderResponseDto, orders);
   }

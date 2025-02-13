@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -56,6 +56,7 @@ export class ProductsService {
     }
     return plainToInstance(ProductResponseDto, product);
   }
+
   async update(productId: number, merchantId: number, updateProductDto: UpdateProductDto): Promise<ProductResponseDto> {
     const product = await this.productRepository.findOne({
       where: { id: productId, merchant: { id: merchantId } },

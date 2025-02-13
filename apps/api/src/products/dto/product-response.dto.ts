@@ -1,8 +1,8 @@
-import { IsInt, IsNumber, IsString, Min } from 'class-validator';
+import { IsNumber, IsString, IsUUID, Min } from 'class-validator';
 
 export class ProductResponseDto {
-  @IsInt()
-  id: number;
+  @IsUUID()
+  id: string;
 
   @IsString()
   name: string;

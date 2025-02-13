@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, ParseUUIDPipe, Post, Put, Req } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -7,7 +7,8 @@ import { ProductResponseDto } from './dto/product-response.dto';
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(private readonly productsService: ProductsService) {
+  }
 
   @Post()
   async create(@Body() createProductDto: CreateProductDto, @Req() req): Promise<ProductResponseDto> {
@@ -21,18 +22,18 @@ export class ProductsController {
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<ProductResponseDto> {
+  async findOne(@Param('id', ParseUUIDPipe) id: number): Promise<ProductResponseDto> {
     return this.productsService.findProductById(id);
   }
 
-  @Get('merchant')
-  async findByMerchant(@Req() req): Promise<ProductResponseDto[]> {
-    return this.productsService.findProductsByMerchant(req.user.id);
+  @Get('merchant/:id')
+  async findByMerchant(@Param('id', ParseUUIDPipe) id: number): Promise<ProductResponseDto[]> {
+    return this.productsService.findProductsByMerchant(id);
   }
 
   @Get(':id/merchant')
   async findProductByMerchant(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseUUIDPipe) id: number,
     @Req() req,
   ): Promise<ProductResponseDto> {
     return this.productsService.findProductByMerchant(id, req.user.id);
@@ -40,7 +41,7 @@ export class ProductsController {
 
   @Put(':id')
   async update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseUUIDPipe) id: number,
     @Req() req,
     @Body() updateProductDto: UpdateProductDto,
   ): Promise<ProductResponseDto> {
@@ -48,7 +49,7 @@ export class ProductsController {
   }
 
   @Delete(':id')
-  async remove(@Param('id', ParseIntPipe) id: number, @Req() req): Promise<void> {
+  async remove(@Param('id', ParseUUIDPipe) id: number, @Req() req): Promise<void> {
     return this.productsService.remove(id, req.user.id);
   }
 }
