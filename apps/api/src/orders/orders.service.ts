@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from './entities/order.entity';
@@ -54,7 +54,7 @@ export class OrdersService {
     //   await this.productsService.updateProductStock(product.id, product.stock);
     // }
 
-      const orderWithItems = await this.findOne(savedOrder.id, customerId);
+    const orderWithItems = await this.findOne(savedOrder.id, customerId);
     return plainToInstance(OrderResponseDto, orderWithItems);
   }
 
@@ -201,8 +201,20 @@ export class OrdersService {
     if (!order) {
       throw new NotFoundException(`Order with ID ${orderId} not found for this user.`);
     }
+    for (const item of order.items) {
+      if (item.quantity <= 0) {
+        await this.orderItemRepository.remove(item);
+      }
+    }
 
-    await this.orderRepository.remove(order);
+    const remainingItems = await this.orderItemRepository.find({ where: { order: { id: orderId } } });
+
+    if (remainingItems.length === 0) {
+      await this.orderRepository.remove(order);
+    } else {
+      order.totalPrice = remainingItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      order.items = remainingItems;
+      await this.orderRepository.save(order);
+    }
   }
-
 }

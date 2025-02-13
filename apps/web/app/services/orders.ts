@@ -95,28 +95,29 @@ export async function addToOrder(productId: string, quantity = 1): Promise<Order
   }
 }
 
-export async function removeFromOrder(productId: string): Promise<Order | null> {
-  const orders = await getPendingOrder(); // This returns an array of orders
-  const pendingOrder = orders.find((order) => order.status === 'pending'); // Find the pending order
+
+export async function removeFromOrder(orderItemId: string): Promise<Order | null> {
+  const orders = await getPendingOrder();
+  const pendingOrder = orders.find((order) => order.status === OrderStatus.PENDING);
 
   if (pendingOrder) {
     if (!pendingOrder.items) {
-      pendingOrder.items = []; // Initialize items if undefined
+      pendingOrder.items = [];
     }
 
-    // Filter out the item to be removed
-    pendingOrder.items = pendingOrder.items.filter((item) => item.product.id !== productId);
+    const product = pendingOrder.items.find((item) => item.id === orderItemId);
 
-    if (pendingOrder.items.length === 0) {
-      // If no items remain, delete the order
-      await deleteOrder(pendingOrder.id);
-      return null;
-    } else {
-      // Otherwise, update the order
-      return updateOrder(pendingOrder.id, pendingOrder);
+    if (product) {
+      if (product.quantity - 1 === 0) {
+        product.quantity = 0;
+        await updateOrder(pendingOrder.id, pendingOrder);
+        await deleteOrder(pendingOrder.id);
+        return null;
+      } else {
+        product.quantity -= 1;
+        return updateOrder(pendingOrder.id, pendingOrder);
+      }
     }
   }
-
-  // Return null if no pending order exists
   return null;
 }

@@ -13,7 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { Order } from '@/app/utils/types';
 
 export default function Cart(): JSX.Element {
-  const [orders, setOrders] = useState<Order | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const { user, role } = useAuth();
@@ -61,17 +61,25 @@ export default function Cart(): JSX.Element {
     };
   }, []);
 
-  const handleRemoveFromCart = async (productId: string) => {
+  const handleRemoveFromCart = async (orderItemId: string) => {
     try {
-      const updatedOrder = await removeFromOrder(productId);
-      setOrders(updatedOrder);
-      toast.success('Item removed from cart');
+      const updatedOrder = await removeFromOrder(orderItemId);
+      setOrders((prevOrders) => {
+        if (updatedOrder === null) {
+          return [];
+        }
+        return prevOrders.map((order) => (order.id === updatedOrder.id ? updatedOrder : order));
+      });
+      if (updatedOrder === null) {
+        toast.success('Order removed from cart');
+      } else {
+        toast.success('Item removed from cart');
+      }
     } catch (err) {
       toast.error('Failed to remove item from cart');
     }
   };
-
-  const handleCheckout = () => {
+      const handleCheckout = () => {
     router.push('/checkout');
   };
 
@@ -97,7 +105,7 @@ export default function Cart(): JSX.Element {
           <p className='text-center text-muted-foreground'>Your cart is empty</p>
         ) : (
           <ScrollArea className='h-[300px] pr-4'>
-            {orders.map((order) => (
+            {orders?.map((order) => (
               <div key={order.id}>
                 <h3 className='font-semibold mb-2'>Order #{order.id.slice(-6)}</h3>
                 {order.items.map((item) => (
@@ -110,7 +118,7 @@ export default function Cart(): JSX.Element {
                     </div>
                     <div className='flex items-center'>
                       <p className='font-medium mr-2'>${(Number.parseFloat(item.price) * item.quantity).toFixed(2)}</p>
-                      <Button variant='ghost' size='icon' onClick={() => handleRemoveFromCart(order.id, item.id)}>
+                      <Button variant='ghost' size='icon' onClick={() => handleRemoveFromCart(item.id)}>
                         <Trash2 className='h-4 w-4' />
                       </Button>
                     </div>
