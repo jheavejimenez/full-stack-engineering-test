@@ -1,23 +1,23 @@
 import { JSX, useEffect, useState } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { fetchMerchantOrders, updateOrderStatus } from '@/app/services/orders';
+import { fetchMerchantOrders, getPendingOrder, updateOrderStatus } from '@/app/services/orders';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Order } from '@/app/utils/types';
 import { toast } from 'sonner';
 import { Badge } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { OrderStatus } from '@/app/utils/enums';
+import { OrderStatus, UserRole } from '@/app/utils/enums';
 
 
 export default function OrderList(): JSX.Element {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const pendingOrders = orders.filter((order) => order.status === 'pending');
-  const shippedOrders = orders.filter((order) => order.status === 'shipped');
-  const deliveredOrders = orders.filter((order) => order.status === 'delivered');
+  const pendingOrders = orders.filter((order) => order.status === OrderStatus.PENDING);
+  const shippedOrders = orders.filter((order) => order.status === OrderStatus.SHIPPED);
+  const deliveredOrders = orders.filter((order) => order.status === OrderStatus.COMPLETED);
 
   useEffect(() => {
     fetchOrders();
@@ -26,7 +26,7 @@ export default function OrderList(): JSX.Element {
   const fetchOrders = async () => {
     try {
       if (user) {
-        const orders = await fetchMerchantOrders(user.id);
+        const orders = role === UserRole.MERCHANT ? await fetchMerchantOrders(user?.id) : await getPendingOrder();
         setOrders(orders);
       }
     } catch (error) {
@@ -36,9 +36,9 @@ export default function OrderList(): JSX.Element {
       setIsLoading(false);
     }
   };
-  const handleShipOrder = async (orderId: string) => {
+  const handleOrderStatus = async (orderId: string, status: OrderStatus) => {
     try {
-      const updatedOrder = await updateOrderStatus(orderId, { status: OrderStatus.SHIPPED });
+      const updatedOrder = await updateOrderStatus(orderId, { status: status });
       setOrders(orders.map((order) => (order.id === orderId ? updatedOrder : order)));
       toast.success('Order status updated to shipped');
     } catch (error) {
@@ -53,8 +53,8 @@ export default function OrderList(): JSX.Element {
     <Card key={order.id}>
       <CardHeader>
         <CardTitle className='flex justify-between items-center'>
-          <span>Order #{order.id}</span>
-          <Badge variant={order.status === 'pending' ? 'secondary' : 'success'}>{order.status}</Badge>
+          <span>Order #{order.id.slice(-6)}</span>
+          <Badge variant={order.status === OrderStatus.PENDING ? 'secondary' : 'success'}>{order.status}</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -62,17 +62,28 @@ export default function OrderList(): JSX.Element {
         <ul className='mt-2'>
           {order.items.map((item) => (
             <li key={item.id}>
-             Quantity: {item.quantity}
+              {item.product.name} - Quantity: {item.quantity}
             </li>
           ))}
         </ul>
       </CardContent>
-      <CardFooter>
-        {order.status === 'pending' && <Button onClick={() => handleShipOrder(order.id)}>Mark as Shipped</Button>}
-      </CardFooter>
+      {role === UserRole.MERCHANT ? (
+        <CardFooter>
+          {
+            order.status === OrderStatus.PENDING &&
+            <Button onClick={() => handleOrderStatus(order.id, OrderStatus.SHIPPED)}>Mark as Shipped</Button>
+          }
+        </CardFooter>
+      ) : (
+        <CardFooter>
+          {
+            order.status ===  OrderStatus.SHIPPED &&
+            <Button onClick={() => handleOrderStatus(order.id, OrderStatus.COMPLETED)}>Mark as Received</Button>
+          }
+        </CardFooter>
+      )}
     </Card>
   );
-
 
   return (
     <Tabs defaultValue='pending' className='w-full'>

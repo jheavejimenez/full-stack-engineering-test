@@ -15,9 +15,13 @@ export default function Navbar() {
           Our Store
         </Link>
         <div className='flex items-center space-x-4'>
-          {user && role === UserRole.MERCHANT && (
-            <Link href='/dashboard' className='text-foreground hover:text-primary'>
+          {user && role === UserRole.MERCHANT ? (
+            <Link href='/dashboard/merchant' className='text-foreground hover:text-primary'>
               Dashboard
+            </Link>
+          ): (
+            <Link href="/dashboard/user" className="text-foreground hover:text-primary">
+              User Dashboard
             </Link>
           )}
           {user ? (

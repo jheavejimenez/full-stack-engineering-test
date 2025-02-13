@@ -1,7 +1,7 @@
 'use client';
 
-import ProductManager from '../components/dashboard/ProductManager';
-import OrderList from '../components/dashboard/OrderList';
+import ProductManager from '../../components/dashboard/ProductManager';
+import OrderList from '../../components/shared/OrderList';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function DashboardPage() {

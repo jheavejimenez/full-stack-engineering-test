@@ -39,7 +39,7 @@ export default function ProductCard({ product }: ProductCardProps): JSX.Element 
   };
 
   const handleRedirect = () => {
-    router.push(`/dashboard/edit-product/${product.id}`);
+    router.push(`/dashboard/merchant/edit-product/${product.id}`);
   };
 
   return (

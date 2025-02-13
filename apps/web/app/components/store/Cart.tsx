@@ -22,7 +22,6 @@ export default function Cart(): JSX.Element {
     if (user && role === 'customer') {
       for (let attempt = 0; attempt < retries; attempt++) {
         try {
-          // Attempt to fetch the pending order
           const fetchedOrder = await getPendingOrder();
           setOrders(fetchedOrder);
           setIsLoading(false);
@@ -47,7 +46,6 @@ export default function Cart(): JSX.Element {
     let pollingInterval;
 
     async function startPolling() {
-      // Initial fetch
       await fetchCustomerOrders();
 
       // Set up polling interval
@@ -59,7 +57,6 @@ export default function Cart(): JSX.Element {
     startPolling();
 
     return () => {
-      // Clear interval on component unmount
       clearInterval(pollingInterval);
     };
   }, []);

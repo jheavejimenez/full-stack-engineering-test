@@ -1,43 +1,28 @@
 "use client"
 
 import { useState } from "react"
-import { loadStripe } from "@stripe/stripe-js"
-import { CardElement, Elements, useStripe, useElements } from "@stripe/react-stripe-js"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
+import { useToast } from '@/hooks/use-toast';
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+export default function PaymentForm() {
+  const [isProcessing, setIsProcessing] = useState(false)
+  const { toast } = useToast()
 
-function CheckoutForm() {
-  const [error, setError] = useState<string | null>(null)
-  const [processing, setProcessing] = useState(false)
-  const stripe = useStripe()
-  const elements = useElements()
-
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    setIsProcessing(true)
 
-    if (!stripe || !elements) {
-      return
-    }
-
-    setProcessing(true)
-
-    const cardElement = elements.getElement(CardElement)
-
-    if (cardElement) {
-      const { error, paymentMethod } = await stripe.createPaymentMethod({
-        type: "card",
-        card: cardElement,
+    // Simulate payment processing
+    setTimeout(() => {
+      setIsProcessing(false)
+      toast({
+        title: "Payment Successful",
+        description: "Your order has been placed successfully.",
       })
-
-      if (error) {
-        setError(error.message ?? "An unknown error occurred")
-        setProcessing(false)
-      } else {
-        setProcessing(false)
-      }
-    }
+    }, 2000)
   }
 
   return (
@@ -49,27 +34,29 @@ function CheckoutForm() {
       <CardContent>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
-            <div className="border rounded p-3">
-              <CardElement />
+            <div className="space-y-2">
+              <Label htmlFor="cardNumber">Card Number</Label>
+              <Input id="cardNumber" placeholder="1234 5678 9012 3456" />
             </div>
-            {error && <div className="text-red-500">{error}</div>}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="expiry">Expiry Date</Label>
+                <Input id="expiry" placeholder="MM/YY" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cvc">CVC</Label>
+                <Input id="cvc" placeholder="123" />
+              </div>
+            </div>
           </div>
         </form>
       </CardContent>
       <CardFooter>
-        <Button type="submit" disabled={!stripe || processing} className="w-full" onClick={handleSubmit}>
-          {processing ? "Processing..." : "Pay"}
+        <Button type="submit" disabled={isProcessing} className="w-full" onClick={handleSubmit}>
+          {isProcessing ? "Processing..." : "Pay"}
         </Button>
       </CardFooter>
     </Card>
-  )
-}
-
-export default function PaymentForm() {
-  return (
-    <Elements stripe={stripePromise}>
-      <CheckoutForm />
-    </Elements>
   )
 }
 
