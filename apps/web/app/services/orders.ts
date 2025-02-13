@@ -112,12 +112,11 @@ export async function removeFromOrder(orderItemId: string): Promise<Order | null
         product.quantity = 0;
         await updateOrder(pendingOrder.id, pendingOrder);
         await deleteOrder(pendingOrder.id);
-        return null;
+        return pendingOrder;
       } else {
         product.quantity -= 1;
         return updateOrder(pendingOrder.id, pendingOrder);
       }
     }
   }
-  return null;
 }
